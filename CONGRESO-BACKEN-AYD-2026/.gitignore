@@ -50,5 +50,8 @@ Thumbs.db
 *.bak
 *.old
 
+# Editor history
+.history
+
 # Ignore docs if not needed
 !docs/
