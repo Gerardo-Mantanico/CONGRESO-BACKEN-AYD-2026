@@ -1,0 +1,59 @@
+# Gradle build output
+/build/
+/bin/
+*.class
+*.jar
+*.war
+*.ear
+
+# IDE files
+*.iml
+.idea/
+*.ipr
+*.iws
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Credentials and environment files
+*.env
+app.env
+application.properties
+application-dev.properties
+application-prod.properties
+src/main/resources/app.env
+src/main/resources/application.properties
+src/main/resources/application-dev.properties
+src/main/resources/application-prod.properties
+src/test/resources/application.properties
+src/main/resources/.env
+
+# Test output
+/test-results/
+/build/reports/
+
+# Others
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Docker
+*.pid
+docker-compose.yaml
+Dockerfile
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+
+# Annotation processor output
+/build/generated/
+/bin/generated-sources/
+/bin/generated-test-sources/
+
+# Backup and stash
+/build/tmp/

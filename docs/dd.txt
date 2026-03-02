@@ -1,0 +1,340 @@
+-- ======================================================
+-- SISTEMA DE GESTIÓN DE CONGRESOS - POSTGRESQL
+-- ======================================================
+
+-- DROP TABLES (Orden inverso de dependencias)
+DROP VIEW IF EXISTS vista_reservas_taller;
+DROP VIEW IF EXISTS vista_asistencias_actividad;
+DROP VIEW IF EXISTS vista_participantes_congreso;
+DROP VIEW IF EXISTS vista_reporte_ganancias;
+
+DROP TABLE IF EXISTS diploma;
+DROP TABLE IF EXISTS asistencia;
+DROP TABLE IF EXISTS reserva_taller;
+DROP TABLE IF EXISTS ponente_invitado_actividad;
+DROP TABLE IF EXISTS actividad_encargados;
+DROP TABLE IF EXISTS actividad;
+DROP TABLE IF EXISTS evaluacion;
+DROP TABLE IF EXISTS trabajo;
+DROP TABLE IF EXISTS convocatoria;
+DROP TABLE IF EXISTS salon;
+DROP TABLE IF EXISTS pago;
+DROP TABLE IF EXISTS inscripcion_congreso_tipos;
+DROP TABLE IF EXISTS inscripcion_congreso;
+DROP TABLE IF EXISTS comite_cientifico;
+DROP TABLE IF EXISTS congreso_administradores;
+DROP TABLE IF EXISTS congreso;
+DROP TABLE IF EXISTS recarga_cuenta;
+DROP TABLE IF EXISTS cuenta_digital;
+DROP TABLE IF EXISTS usuario_rol;
+DROP TABLE IF EXISTS rol;
+DROP TABLE IF EXISTS usuario;
+DROP TABLE IF EXISTS institucion;
+DROP TABLE IF EXISTS configuracion_sistema;
+
+-- ======================================================
+-- TABLAS PRINCIPALES
+-- ======================================================
+
+CREATE TABLE configuracion_sistema (
+                                       id BIGINT PRIMARY KEY CHECK (id = 1),
+                                       comision_porcentaje_default DECIMAL(5,2) NOT NULL,
+                                       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE institucion (
+                             id BIGSERIAL PRIMARY KEY,
+                             nombre VARCHAR(255) NOT NULL UNIQUE,
+                             descripcion TEXT,
+                             direccion VARCHAR(255),
+                             activa BOOLEAN DEFAULT TRUE,
+                             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE usuario (
+                         id BIGSERIAL PRIMARY KEY,
+                         numero_identificacion_personal VARCHAR(50) NOT NULL UNIQUE,
+                         nombre_completo VARCHAR(255) NOT NULL,
+                         email VARCHAR(255) NOT NULL UNIQUE,
+                         telefono VARCHAR(50),
+                         organizacion VARCHAR(255),
+                         foto_url VARCHAR(500),
+                         activo BOOLEAN DEFAULT TRUE,
+                         fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_usuario_email ON usuario(email);
+CREATE INDEX idx_usuario_identificacion ON usuario(numero_identificacion_personal);
+
+CREATE TABLE rol (
+                     id BIGSERIAL PRIMARY KEY,
+                     nombre VARCHAR(100) NOT NULL UNIQUE,
+                     descripcion VARCHAR(255),
+                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE usuario_rol (
+                             id BIGSERIAL PRIMARY KEY,
+                             usuario_id BIGINT NOT NULL REFERENCES usuario(id) ON DELETE CASCADE,
+                             rol_id BIGINT NOT NULL REFERENCES rol(id) ON DELETE CASCADE,
+                             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                             UNIQUE (usuario_id, rol_id)
+);
+
+CREATE TABLE cuenta_digital (
+                                id BIGSERIAL PRIMARY KEY,
+                                usuario_id BIGINT NOT NULL UNIQUE REFERENCES usuario(id) ON DELETE CASCADE,
+                                saldo DECIMAL(10,2) DEFAULT 0.00,
+                                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE recarga_cuenta (
+                                id BIGSERIAL PRIMARY KEY,
+                                cuenta_digital_id BIGINT NOT NULL REFERENCES cuenta_digital(id) ON DELETE CASCADE,
+                                monto DECIMAL(10,2) NOT NULL,
+                                fecha_recarga TIMESTAMP NOT NULL,
+                                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE congreso (
+                          id BIGSERIAL PRIMARY KEY,
+                          titulo VARCHAR(255) NOT NULL,
+                          descripcion TEXT,
+                          fecha_inicio TIMESTAMP NOT NULL,
+                          fecha_fin TIMESTAMP NOT NULL,
+                          ubicacion VARCHAR(255),
+                          precio_inscripcion DECIMAL(10,2) NOT NULL CHECK (precio_inscripcion >= 35.00),
+                          comision_porcentaje DECIMAL(5,2) NOT NULL DEFAULT 10.00,
+                          activo BOOLEAN DEFAULT TRUE,
+                          institucion_id BIGINT NOT NULL REFERENCES institucion(id),
+                          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                          CONSTRAINT chk_fechas_congreso CHECK (fecha_inicio < fecha_fin)
+);
+
+CREATE TABLE congreso_administradores (
+                                          congreso_id BIGINT NOT NULL REFERENCES congreso(id) ON DELETE CASCADE,
+                                          usuario_id BIGINT NOT NULL REFERENCES usuario(id) ON DELETE CASCADE,
+                                          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                          PRIMARY KEY (congreso_id, usuario_id)
+);
+
+CREATE TABLE comite_cientifico (
+                                   congreso_id BIGINT NOT NULL REFERENCES congreso(id) ON DELETE CASCADE,
+                                   usuario_id BIGINT NOT NULL REFERENCES usuario(id) ON DELETE CASCADE,
+                                   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                   PRIMARY KEY (congreso_id, usuario_id)
+);
+
+CREATE TABLE inscripcion_congreso (
+                                      id BIGSERIAL PRIMARY KEY,
+                                      usuario_id BIGINT NOT NULL REFERENCES usuario(id) ON DELETE CASCADE,
+                                      congreso_id BIGINT NOT NULL REFERENCES congreso(id) ON DELETE CASCADE,
+                                      fecha_inscripcion TIMESTAMP NOT NULL,
+                                      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                      UNIQUE (usuario_id, congreso_id)
+);
+
+CREATE TABLE inscripcion_congreso_tipos (
+                                            inscripcion_id BIGINT NOT NULL REFERENCES inscripcion_congreso(id) ON DELETE CASCADE,
+                                            tipo_participacion VARCHAR(50) NOT NULL CHECK (tipo_participacion IN ('ASISTENTE', 'PONENTE', 'TALLERISTA', 'PONENTE_INVITADO')),
+                                            PRIMARY KEY (inscripcion_id, tipo_participacion)
+);
+
+CREATE TABLE pago (
+                      id BIGSERIAL PRIMARY KEY,
+                      inscripcion_id BIGINT NOT NULL UNIQUE REFERENCES inscripcion_congreso(id) ON DELETE CASCADE,
+                      monto_total DECIMAL(10,2) NOT NULL,
+                      comision_porcentaje DECIMAL(5,2) NOT NULL,
+                      monto_comision DECIMAL(10,2) NOT NULL,
+                      fecha_pago TIMESTAMP NOT NULL,
+                      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE salon (
+                       id BIGSERIAL PRIMARY KEY,
+                       nombre VARCHAR(255) NOT NULL,
+                       ubicacion VARCHAR(255),
+                       capacidad INTEGER NOT NULL CHECK (capacidad > 0),
+                       recursos TEXT,
+                       congreso_id BIGINT NOT NULL REFERENCES congreso(id) ON DELETE CASCADE,
+                       activo BOOLEAN DEFAULT TRUE,
+                       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE convocatoria (
+                              id BIGSERIAL PRIMARY KEY,
+                              nombre VARCHAR(255) NOT NULL,
+                              descripcion TEXT,
+                              fecha_inicio TIMESTAMP NOT NULL,
+                              fecha_fin TIMESTAMP NOT NULL,
+                              congreso_id BIGINT NOT NULL REFERENCES congreso(id) ON DELETE CASCADE,
+                              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                              updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                              CONSTRAINT chk_fechas_convocatoria CHECK (fecha_inicio < fecha_fin)
+);
+
+CREATE TABLE trabajo (
+                         id BIGSERIAL PRIMARY KEY,
+                         titulo VARCHAR(255) NOT NULL,
+                         resumen TEXT NOT NULL,
+                         tipo_trabajo VARCHAR(50) NOT NULL CHECK (tipo_trabajo IN ('PONENCIA', 'TALLER')),
+                         fecha_envio TIMESTAMP NOT NULL,
+                         estado VARCHAR(50) NOT NULL CHECK (estado IN ('PENDIENTE', 'APROBADO', 'RECHAZADO')),
+                         archivo_url VARCHAR(500),
+                         autor_id BIGINT NOT NULL REFERENCES usuario(id) ON DELETE CASCADE,
+                         convocatoria_id BIGINT NOT NULL REFERENCES convocatoria(id) ON DELETE CASCADE,
+                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE evaluacion (
+                            id BIGSERIAL PRIMARY KEY,
+                            comentarios TEXT,
+                            decision VARCHAR(50) NOT NULL CHECK (decision IN ('APROBADO', 'RECHAZADO', 'CAMBIOS_REQUERIDOS')),
+                            fecha_evaluacion TIMESTAMP NOT NULL,
+                            trabajo_id BIGINT NOT NULL REFERENCES trabajo(id) ON DELETE CASCADE,
+                            evaluador_id BIGINT NOT NULL REFERENCES usuario(id) ON DELETE CASCADE,
+                            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                            UNIQUE (trabajo_id, evaluador_id)
+);
+
+CREATE TABLE actividad (
+                           id BIGSERIAL PRIMARY KEY,
+                           nombre VARCHAR(255) NOT NULL,
+                           descripcion TEXT,
+                           tipo VARCHAR(50) NOT NULL CHECK (tipo IN ('PONENCIA', 'TALLER')),
+                           hora_inicio TIMESTAMP NOT NULL,
+                           hora_fin TIMESTAMP NOT NULL,
+                           capacidad_maxima INTEGER,
+                           salon_id BIGINT NOT NULL REFERENCES salon(id),
+                           congreso_id BIGINT NOT NULL REFERENCES congreso(id) ON DELETE CASCADE,
+                           trabajo_origen_id BIGINT REFERENCES trabajo(id) ON DELETE SET NULL,
+                           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                           CONSTRAINT chk_horas_actividad CHECK (hora_inicio < hora_fin),
+                           CONSTRAINT chk_capacidad_taller CHECK (
+                               (tipo = 'TALLER' AND capacidad_maxima > 0) OR
+                               (tipo != 'TALLER' AND capacidad_maxima IS NULL)
+                               )
+);
+
+CREATE TABLE actividad_encargados (
+                                      actividad_id BIGINT NOT NULL REFERENCES actividad(id) ON DELETE CASCADE,
+                                      usuario_id BIGINT NOT NULL REFERENCES usuario(id) ON DELETE CASCADE,
+                                      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                      PRIMARY KEY (actividad_id, usuario_id)
+);
+
+CREATE TABLE ponente_invitado_actividad (
+                                            id BIGSERIAL PRIMARY KEY,
+                                            actividad_id BIGINT NOT NULL REFERENCES actividad(id) ON DELETE CASCADE,
+                                            usuario_id BIGINT NOT NULL REFERENCES usuario(id),
+                                            registrado_por_id BIGINT NOT NULL REFERENCES usuario(id),
+                                            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                            UNIQUE (actividad_id, usuario_id)
+);
+
+CREATE TABLE reserva_taller (
+                                id BIGSERIAL PRIMARY KEY,
+                                actividad_id BIGINT NOT NULL REFERENCES actividad(id) ON DELETE CASCADE,
+                                usuario_id BIGINT NOT NULL REFERENCES usuario(id) ON DELETE CASCADE,
+                                fecha_reserva TIMESTAMP NOT NULL,
+                                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                UNIQUE (actividad_id, usuario_id)
+);
+
+CREATE TABLE asistencia (
+                            id BIGSERIAL PRIMARY KEY,
+                            actividad_id BIGINT NOT NULL REFERENCES actividad(id) ON DELETE CASCADE,
+                            usuario_id BIGINT NOT NULL REFERENCES usuario(id) ON DELETE CASCADE,
+                            fecha_registro TIMESTAMP NOT NULL,
+                            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                            UNIQUE (actividad_id, usuario_id)
+);
+
+CREATE TABLE diploma (
+                         id BIGSERIAL PRIMARY KEY,
+                         tipo VARCHAR(50) NOT NULL CHECK (tipo IN ('PARTICIPANTE', 'PONENTE', 'TALLERISTA', 'PONENTE_INVITADO')),
+                         fecha_emision TIMESTAMP NOT NULL,
+                         url_pdf VARCHAR(500) NOT NULL,
+                         usuario_id BIGINT NOT NULL REFERENCES usuario(id) ON DELETE CASCADE,
+                         congreso_id BIGINT NOT NULL REFERENCES congreso(id) ON DELETE CASCADE,
+                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                         UNIQUE (usuario_id, congreso_id, tipo)
+);
+
+-- ======================================================
+-- VISTAS (PostgreSQL usa string_agg en vez de GROUP_CONCAT)
+-- ======================================================
+
+CREATE VIEW vista_participantes_congreso AS
+SELECT
+    c.id AS congreso_id,
+    u.id AS usuario_id,
+    u.numero_identificacion_personal,
+    u.nombre_completo,
+    u.email,
+    ic.fecha_inscripcion,
+    string_agg(DISTINCT ict.tipo_participacion, ',') AS tipos_participacion
+FROM congreso c
+         JOIN inscripcion_congreso ic ON c.id = ic.congreso_id
+         JOIN usuario u ON ic.usuario_id = u.id
+         JOIN inscripcion_congreso_tipos ict ON ic.id = ict.inscripcion_id
+GROUP BY c.id, u.id, ic.fecha_inscripcion;
+
+-- ======================================================
+-- FUNCIONES Y TRIGGERS (Sintaxis PL/pgSQL)
+-- ======================================================
+
+-- Función para updated_at genérica
+CREATE OR REPLACE FUNCTION fn_update_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Ejemplo de aplicación de trigger de tiempo
+CREATE TRIGGER tr_update_usuario BEFORE UPDATE ON usuario
+    FOR EACH ROW EXECUTE FUNCTION fn_update_timestamp();
+
+-- Trigger: No cambiar tipo actividad
+CREATE OR REPLACE FUNCTION fn_actividad_no_cambiar_tipo()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.tipo <> NEW.tipo THEN
+        RAISE EXCEPTION 'No se puede modificar el tipo de actividad';
+END IF;
+RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER tr_actividad_tipo BEFORE UPDATE ON actividad
+    FOR EACH ROW EXECUTE FUNCTION fn_actividad_no_cambiar_tipo();
+
+-- ======================================================
+-- INSERCIÓN DE DATOS INICIALES
+-- ======================================================
+
+INSERT INTO rol (nombre, descripcion) VALUES
+                                          ('ADMIN_SISTEMA', 'Administrador total'),
+                                          ('ADMIN_CONGRESO', 'Gestor de eventos'),
+                                          ('PARTICIPANTE', 'Usuario base');
+
+INSERT INTO configuracion_sistema (id, comision_porcentaje_default) VALUES (1, 10.00);
+
+-- Usuario Admin Inicial
+INSERT INTO usuario (numero_identificacion_personal, nombre_completo, email, activo)
+VALUES ('ADMIN-001', 'Admin Sistema', 'admin@sistema.com', TRUE);
+
+INSERT INTO usuario_rol (usuario_id, rol_id) VALUES (1, 1);
+INSERT INTO cuenta_digital (usuario_id, saldo) VALUES (1, 1000.00);

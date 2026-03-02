@@ -1,0 +1,77 @@
+package com.congreso.persistence.entity;
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.Instant;
+
+@Entity
+@Table(name = "role")
+public class RoleEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
+    private Long id;
+
+    @Size(max = 100)
+    @NotNull
+    @Column(name = "name", nullable = false, length = 100)
+    private String name;
+
+    @Size(max = 255)
+    @NotNull
+    @Column(name = "description", nullable = false)
+    private String description;
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+}
