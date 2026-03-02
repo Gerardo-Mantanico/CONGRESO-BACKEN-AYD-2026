@@ -33,7 +33,7 @@ public class UserCreationDtoTest {
 
     @Test
     void serializesAndDeserializes() throws Exception {
-        UserCreationDto dto = new UserCreationDto("Juan","Perez","juan@example.com","12345678","pass",1000000000000L);
+        UserCreationDto dto = new UserCreationDto("Juan","Perez","juan@example.com","12345678","pass","1000000000000");
         String json = objectMapper.writeValueAsString(dto);
         UserCreationDto read = objectMapper.readValue(json, UserCreationDto.class);
         assertEquals(dto.getFirstname(), read.getFirstname());

@@ -26,7 +26,7 @@ public class UserRepositoryTest {
         user.setEmail("juan@example.com");
         user.setPhoneNumber("12345678");
         user.setPassword("pass");
-        user.setDpi(1000000000000L);
+        user.setDpi("1000000000000");
 
         UserEntity saved = userRepository.save(user);
         assertThat(saved.getId()).isNotNull();
@@ -36,4 +36,3 @@ public class UserRepositoryTest {
         assertThat(found.getEmail()).isEqualTo("juan@example.com");
     }
 }
-
