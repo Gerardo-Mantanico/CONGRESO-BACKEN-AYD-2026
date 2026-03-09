@@ -34,9 +34,8 @@ public class RecargaCuentaEntity {
     @Column(name = "referencia", length = 128)
     private String referencia;
 
-    @Size(max = 32)
-    @Column(name = "estado", length = 32, nullable = false)
-    private String estado = "PENDING";
+    // campo 'estado' eliminado: la columna no existe en la tabla y no queremos validación en el entity
+    // Si en el futuro se necesita, se puede añadir una migración y reintroducir este campo
 
     @Size(max = 64)
     @Column(name = "medio_pago", length = 64)
@@ -57,4 +56,3 @@ public class RecargaCuentaEntity {
     private Instant updatedAt;
 
 }
-

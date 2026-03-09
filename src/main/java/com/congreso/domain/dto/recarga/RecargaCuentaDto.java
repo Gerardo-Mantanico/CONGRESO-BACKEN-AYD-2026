@@ -9,7 +9,6 @@ public record RecargaCuentaDto(
         BigDecimal monto,
         String moneda,
         String referencia,
-        String estado,
         String medioPago,
         Long operadorId,
         Instant fechaRecarga,
@@ -17,4 +16,3 @@ public record RecargaCuentaDto(
         Instant updatedAt
 ) {
 }
-

@@ -38,8 +38,9 @@ public class CongresoEntity {
 
     private Boolean activo = true;
 
-    @Column(name = "institucion_id")
-    private Long institucionId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "institucion_id", referencedColumnName = "id")
+    private InstitucionEntity institucionId;
 
     @Column(name = "created_at")
     private OffsetDateTime createdAt = OffsetDateTime.now();

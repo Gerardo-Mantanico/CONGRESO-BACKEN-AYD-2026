@@ -26,6 +26,7 @@ public class UserService {
     private final RoleRepository roleRepository;
     private final UserMapper userMapper;
     private final EmailService emailService;
+    private final CuentaDigitalRepository cuentaDigitalRepository; // inyectado
 
 
     @Transactional
@@ -47,16 +48,27 @@ public class UserService {
         userRoleEntity.setUser(userEntity);
         userRoleEntity.setRole(role);
         userEntity.setUserRole(userRoleEntity);
+        userEntity.setUse2fa(false);
         userEntity = userRepository.save(userEntity);
         userRoleEntity.setUser(userEntity);
 
-        emailService.sendEmailAsync(userCreationDto.getEmail(),
-                "Bienvenido a PIFirm",
-                "Hola " + userEntity.getFirstname() + ",\n\n" +
-                        "Gracias por registrarte en PIFirm. Estamos encantados de tenerte con nosotros.\n\n" +
-                        "Saludos cordiales,\n" +
-                        "El equipo de PIFirm");
+        // Leer la cuenta digital creada por el trigger (el trigger se ejecuta durante el INSERT)
+        String numeroCuenta = cuentaDigitalRepository.findByUsuarioId(userEntity.getId())
+                .map(CuentaDigitalEntity::getNumeroCuenta)
+                .orElse(null);
 
+        String emailBody = "Hola " + userEntity.getFirstname() + ",\n\n" +
+                "Gracias por registrarte en PIFirm. Estamos encantados de tenerte con nosotros.\n\n";
+
+        if (numeroCuenta != null) {
+            emailBody += "Tu cuenta digital ha sido creada con número: " + numeroCuenta + " y saldo inicial de Q50.00\n\n";
+        } else {
+            emailBody += "Tu cuenta digital será creada en breve.\n\n";
+        }
+
+        emailBody += "Saludos cordiales,\nEl equipo de PIFirm";
+
+        emailService.sendEmailAsync(userCreationDto.getEmail(), "Bienvenido a PIFirm", emailBody);
 
         return this.userMapper.toDto(userEntity);
     }
@@ -137,6 +149,7 @@ public class UserService {
         userRoleEntity.setUser(userEntity);
         userRoleEntity.setRole(role);
         userEntity.setUserRole(userRoleEntity);
+        userEntity.setUse2fa(false);
         userEntity = userRepository.save(userEntity);
         return this.userMapper.toDto(userEntity);
     }
@@ -144,7 +157,7 @@ public class UserService {
 
     @Transactional
     public List<UserDto> searchByDpiOrName(String dpi, String name) {
-        List<UserEntity> list = this.userRepository.findByDpiOrName(dpi, name);
+        List<UserEntity> list = this.userRepository.findByDpiOrLastname(dpi, name);
         return userMapper.toDto(list);
     }
 

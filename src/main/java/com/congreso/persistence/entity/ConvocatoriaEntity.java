@@ -8,9 +8,8 @@ import java.time.OffsetDateTime;
 
 @Entity
 @Data
-@Table(name = "actividad")
-public class ActividadEntity {
-
+@Table(name = "convocatoria")
+public class ConvocatoriaEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -20,25 +19,15 @@ public class ActividadEntity {
     @Column(columnDefinition = "text")
     private String descripcion;
 
-    // Tipo: 'PONENCIA' | 'TALLER'
-    private String tipo;
+    @Column(name = "fecha_inicio")
+    private OffsetDateTime fechaInicio;
 
-    @Column(name = "hora_inicio")
-    private OffsetDateTime horaInicio;
-
-    @Column(name = "hora_fin")
-    private OffsetDateTime horaFin;
-
-    @Column(name = "capacidad_maxima")
-    private Integer capacidadMaxima;
+    @Column(name = "fecha_fin")
+    private OffsetDateTime fechaFin;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "congreso_id", nullable = false)
     private CongresoEntity congresoId;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "convocatoria_id", nullable = false)
-    private ConvocatoriaEntity convocatoriaId;
 
     @Column(name = "created_at")
     private OffsetDateTime createdAt = OffsetDateTime.now();
@@ -46,16 +35,10 @@ public class ActividadEntity {
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private UserEntity user;
-
     @Column(name = "estado_id")
     private Estados estado = Estados.ACTIVO;
 
     @Column(insertable = false)
     private Boolean activo;
-
-    @Column(name = "archivo_url", columnDefinition = "text")
-    private String archivoUrl;
 }
+

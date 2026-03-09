@@ -25,17 +25,12 @@ public class RecargaCuentaService {
 
     @Transactional
     public RecargaCuentaDto create(RecargaCuentaCreationDto dto) {
-        CuentaDigitalEntity cuenta = cuentaDigitalRepository.findById(dto.getCuentaDigitalId())
+        CuentaDigitalEntity cuenta = cuentaDigitalRepository.findByNumeroCuenta(dto.getCuentaDigitalId())
                 .orElseThrow(() -> new GeneralException("cuenta-not-found", "Cuenta digital no encontrada"));
-
         RecargaCuentaEntity recarga = recargaCuentaMapper.toEntity(dto);
-        // Si la recarga se registra como COMPLETED en el DTO (o lógica externa), actualizar saldo
-        if ("COMPLETED".equalsIgnoreCase(recarga.getEstado())) {
             BigDecimal nuevoSaldo = (cuenta.getSaldo() == null ? BigDecimal.ZERO : cuenta.getSaldo()).add(recarga.getMonto());
             cuenta.setSaldo(nuevoSaldo);
             cuentaDigitalRepository.save(cuenta);
-        }
-
         RecargaCuentaEntity saved = recargaCuentaRepository.save(recarga);
         return recargaCuentaMapper.toDto(saved);
     }

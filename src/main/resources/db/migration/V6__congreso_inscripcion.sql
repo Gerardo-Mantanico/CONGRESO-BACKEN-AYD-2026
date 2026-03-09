@@ -7,7 +7,7 @@ CREATE TABLE congreso (
                           ubicacion VARCHAR(255),
                           precio_inscripcion DECIMAL(10,2) NOT NULL CHECK (precio_inscripcion >= 35.00),
                           comision_porcentaje DECIMAL(5,2) NOT NULL DEFAULT 10.00,
-                          foto_url JSONB,
+                          foto_url TEXT,
                           activo BOOLEAN DEFAULT TRUE,
                           institucion_id BIGINT NOT NULL REFERENCES institucion(id),
                           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

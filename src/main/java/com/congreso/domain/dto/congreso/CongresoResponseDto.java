@@ -1,5 +1,7 @@
 package com.congreso.domain.dto.congreso;
 
+import com.congreso.domain.dto.institucion.InstitucionResponseDto;
+
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
@@ -14,7 +16,7 @@ public record CongresoResponseDto(
         BigDecimal comisionPorcentaje,
         String fotoUrl,
         Boolean activo,
-        Long institucionId,
+        InstitucionResponseDto institucionId,
         OffsetDateTime createdAt,
         OffsetDateTime updatedAt
 ) {}

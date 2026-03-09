@@ -2,6 +2,7 @@ package com.congreso.web.controller;
 
 import com.congreso.domain.dto.congreso.CreateDtoCongreso;
 import com.congreso.domain.dto.congreso.CongresoResponseDto;
+import com.congreso.domain.dto.institucion.InstitucionResponseDto;
 import com.congreso.domain.service.CongresoService;
 import com.congreso.test.TestFixtures;
 import org.junit.jupiter.api.Test;
@@ -49,7 +50,8 @@ public class CongresoControllerTest {
     @Test
     void list_returnsOk() throws Exception {
         var c = TestFixtures.createCongresoEntity();
-        var dto = new CongresoResponseDto(c.getId(), c.getTitulo(), c.getDescripcion(), c.getFechaInicio(), c.getFechaFin(), c.getUbicacion(), c.getPrecioInscripcion(), c.getComisionPorcentaje(), c.getFotoUrl(), c.getActivo(), c.getInstitucionId(), c.getCreatedAt(), c.getUpdatedAt());
+        var institucionDto = new InstitucionResponseDto(c.getInstitucionId().getId(), c.getInstitucionId().getNombre(), c.getInstitucionId().getDescripcion(), c.getInstitucionId().getDireccion(), null, c.getInstitucionId().getActivo(), c.getInstitucionId().getCreatedAt(), c.getInstitucionId().getUpdatedAt());
+        var dto = new CongresoResponseDto(c.getId(), c.getTitulo(), c.getDescripcion(), c.getFechaInicio(), c.getFechaFin(), c.getUbicacion(), c.getPrecioInscripcion(), c.getComisionPorcentaje(), c.getFotoUrl(), c.getActivo(), institucionDto, c.getCreatedAt(), c.getUpdatedAt());
         when(congresoService.list()).thenReturn(List.of(dto));
 
         mockMvc.perform(get("/congresos").accept(MediaType.APPLICATION_JSON))
@@ -61,7 +63,8 @@ public class CongresoControllerTest {
     void create_returnsOk() throws Exception {
         CreateDtoCongreso req = TestFixtures.createValidCongresoDto();
         var entity = TestFixtures.createCongresoEntity();
-        var dto = new CongresoResponseDto(entity.getId(), entity.getTitulo(), entity.getDescripcion(), entity.getFechaInicio(), entity.getFechaFin(), entity.getUbicacion(), entity.getPrecioInscripcion(), entity.getComisionPorcentaje(), entity.getFotoUrl(), entity.getActivo(), entity.getInstitucionId(), entity.getCreatedAt(), entity.getUpdatedAt());
+        var institucionDto = new InstitucionResponseDto(entity.getInstitucionId().getId(), entity.getInstitucionId().getNombre(), entity.getInstitucionId().getDescripcion(), entity.getInstitucionId().getDireccion(), null, entity.getInstitucionId().getActivo(), entity.getInstitucionId().getCreatedAt(), entity.getInstitucionId().getUpdatedAt());
+        var dto = new CongresoResponseDto(entity.getId(), entity.getTitulo(), entity.getDescripcion(), entity.getFechaInicio(), entity.getFechaFin(), entity.getUbicacion(), entity.getPrecioInscripcion(), entity.getComisionPorcentaje(), entity.getFotoUrl(), entity.getActivo(), institucionDto, entity.getCreatedAt(), entity.getUpdatedAt());
         when(congresoService.create(req)).thenReturn(dto);
 
         mockMvc.perform(post("/congresos").contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsString(req)))

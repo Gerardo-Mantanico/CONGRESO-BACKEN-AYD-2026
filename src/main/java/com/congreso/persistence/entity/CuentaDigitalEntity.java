@@ -1,30 +1,25 @@
 package com.congreso.persistence.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
-import java.time.Instant;
+import java.time.OffsetDateTime;
 
 @Entity
-@Table(name = "cuenta_digital")
 @Data
+@Table(name = "cuenta_digital")
 public class CuentaDigitalEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
     @Column(name = "usuario_id", nullable = false, unique = true)
     private Long usuarioId;
 
-    @NotNull
-    @Column(name = "saldo", nullable = false)
-    private BigDecimal saldo = BigDecimal.ZERO;
+    @Column(name = "saldo")
+    private BigDecimal saldo;
 
     @Size(max = 8)
     @Column(name = "moneda", length = 8)
@@ -33,13 +28,13 @@ public class CuentaDigitalEntity {
     @Column(name = "activa", nullable = false)
     private Boolean activa = true;
 
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false)
-    private Instant createdAt;
+    @Column(nullable = false)
+    private String numeroCuenta;
 
-    @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt;
+    @Column(name = "created_at")
+    private OffsetDateTime createdAt = OffsetDateTime.now();
+
+    @Column(name = "updated_at")
+    private OffsetDateTime updatedAt = OffsetDateTime.now();
 
 }
-

@@ -40,7 +40,7 @@ public class UserController {
         return ResponseEntity.ok(this.userMapper.toDto(currentUser));
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public PageResponse<UserDto> allUsers(
             @RequestParam(defaultValue = "0") int page,
@@ -60,14 +60,14 @@ public class UserController {
         return ResponseEntity.ok(userDto);
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<UserDto> getById(@PathVariable Long id) {
         UserDto userDto = this.userService.getById(id);
         return ResponseEntity.ok(userDto);
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<GenericResponse> delete(@PathVariable Long id) {
         this.userService.delete(id);

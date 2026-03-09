@@ -7,3 +7,23 @@ VALUES
     ('PONENTE', 'Participante que presenta una ponencia en un congreso (trabajo aprobado) ', Now(), Now()),
     ('TALLERISTA', 'Participante que imparte un taller en un congreso (trabajo aprobado)', Now(), Now()),
     ('ASISTENTE', 'Participante que solo asiste a las actividades del congreso', Now(), Now());
+
+CREATE TABLE estados(
+                        id serial primary key,
+                        nombre varchar(255) not null
+);
+
+INSERT INTO estados (nombre) VALUES
+                                 ('Pendiente'),
+                                 ('En espera'),
+                                 ('Activo'),
+                                 ('En proceso'),
+                                 ('Aceptado'),
+                                 ('Rechazado'),
+                                 ('Cancelado'),
+                                 ('Completado'),
+                                 ('Ocupado'),
+                                 ('Inactivo'),
+                                 ('Suspendido'),
+                                 ('Finalizado');
+

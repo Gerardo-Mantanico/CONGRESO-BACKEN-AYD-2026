@@ -26,7 +26,10 @@ public class UserUtilsService {
 
     public boolean hasAnyAuthority(UserEntity userEntity, Set<Role> roles) {
         Set<String> roleNames = roles.stream().map(Role::name).collect(Collectors.toSet());
-        return userEntity.getAuthorities().stream().anyMatch(a -> roleNames.contains(a.getAuthority()));
+        return userEntity.getAuthorities().stream()
+                .map(a -> a.getAuthority())
+                .map(auth -> auth != null && auth.startsWith("ROLE_") ? auth.substring(5) : auth)
+                .anyMatch(roleNames::contains);
     }
 
     public boolean hasAuthority(UserEntity userEntity, Role role) {

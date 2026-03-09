@@ -1,4 +1,3 @@
-
 package com.congreso.domain.service;
 
 import com.congreso.domain.dto.congreso.CreateDtoCongreso;
@@ -6,6 +5,7 @@ import com.congreso.domain.dto.congreso.CongresoResponseDto;
 import com.congreso.domain.exception.GeneralException;
 import com.congreso.domain.repository.CongresoRepository;
 import com.congreso.domain.repository.InscripcionCongresoRepository;
+import com.congreso.domain.repository.InstitucionRepository;
 import com.congreso.persistence.entity.CongresoEntity;
 import com.congreso.persistence.mapper.CongresoMapper;
 import jakarta.transaction.Transactional;
@@ -23,6 +23,7 @@ public class CongresoService {
     private final CongresoRepository congresoRepository;
     private final InscripcionCongresoRepository inscripcionRepository;
     private final CongresoMapper congresoMapper;
+    private final InstitucionRepository  institucionRepository;
 
     public List<CongresoResponseDto> list() {
         return congresoRepository.findByActivoTrue().stream()
@@ -37,9 +38,21 @@ public class CongresoService {
     }
 
     public CongresoResponseDto create(CreateDtoCongreso dto) {
+        // Nueva validación: la fecha de inicio debe ser posterior a la fecha actual
+        if (dto.fechaInicio() == null) {
+            throw new GeneralException("fecha-inicio-required", "La fecha de inicio es obligatoria");
+        }
+        OffsetDateTime ahora = OffsetDateTime.now();
+        if (!dto.fechaInicio().isAfter(ahora)) {
+            throw new GeneralException("fecha-inicio-invalida", "La fecha de inicio del congreso debe ser posterior a la fecha actual");
+        }
+
         validateDates(dto.fechaInicio(), dto.fechaFin());
         validatePrecio(dto.precioInscripcion());
         CongresoEntity entity = congresoMapper.dtoToEntity(dto);
+        var institucion = institucionRepository.findById(dto.institucionId())
+                .orElseThrow(() -> new GeneralException("institucion-not-found", "Institución no encontrada"));
+        entity.setInstitucionId(institucion);
         CongresoEntity saved = congresoRepository.save(entity);
         return congresoMapper.entityToDto(saved);
     }

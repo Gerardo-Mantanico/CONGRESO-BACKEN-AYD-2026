@@ -3,12 +3,16 @@ package com.congreso.web.controller;
 import com.congreso.persistence.entity.ConfiguracionSistemaEntity;
 
 import com.congreso.domain.service.ConfiguracionSistemaService;
-// ...existing code...
+import com.congreso.domain.dto.ConfiguracionSistema.updateDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -33,5 +37,14 @@ public class ConfiguracionSistemaController {
         } else {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Actualizar la configuración del sistema")
+    public ResponseEntity<ConfiguracionSistemaEntity> updateConfiguracionSistema(@PathVariable Long id,
+                                                                                 @RequestBody @Valid updateDto dto) {
+        ConfiguracionSistemaEntity updated = configuracionSistemaService.update(id, dto);
+        return ResponseEntity.ok(updated);
     }
 }

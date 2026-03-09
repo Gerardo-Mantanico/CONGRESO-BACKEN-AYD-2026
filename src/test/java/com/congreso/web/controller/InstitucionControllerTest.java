@@ -42,8 +42,8 @@ public class InstitucionControllerTest {
 
     @Test
     void create_returnsOk() throws Exception {
-        CreateDtoInstitucion req = new CreateDtoInstitucion("Nombre","Desc corta","Direccion");
-        InstitucionResponseDto resDto = new InstitucionResponseDto(1L, "Nombre", "Desc corta", "Direccion", true, OffsetDateTime.now(), OffsetDateTime.now());
+        CreateDtoInstitucion req = new CreateDtoInstitucion("Nombre","Desc corta","Direccion", java.util.List.of());
+        InstitucionResponseDto resDto = new InstitucionResponseDto(1L, "Nombre", "Desc corta", "Direccion", java.util.List.of(), true, OffsetDateTime.now(), OffsetDateTime.now());
         when(institucionService.create(req)).thenReturn(resDto);
 
         mockMvc.perform(post("/instituciones").contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsString(req)))

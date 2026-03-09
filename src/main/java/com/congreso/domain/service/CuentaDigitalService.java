@@ -21,10 +21,11 @@ import java.time.OffsetDateTime;
 public class CuentaDigitalService {
     private final CuentaDigitalRepository cuentaDigitalRepository;
     private final CuentaDigitalMapper cuentaDigitalMapper;
+    private final UserUtilsService userUtilsService;
 
     @Transactional
     public CuentaDigitalDto create(CuentaDigitalCreationDto dto) {
-        if (cuentaDigitalRepository.findByUsuarioId(dto.getUsuarioId()).isPresent()) {
+        if (cuentaDigitalRepository.findByUsuarioId(userUtilsService.getCurrent().getId() ).isPresent()) {
             throw new GeneralException("cuenta-exists", "El usuario ya tiene una cuenta digital");
         }
         CuentaDigitalEntity entity = cuentaDigitalMapper.toEntity(dto);
@@ -41,8 +42,9 @@ public class CuentaDigitalService {
         return cuentaDigitalMapper.toDto(updated);
     }
 
-    public CuentaDigitalDto getById(Long id) {
-        return cuentaDigitalRepository.findById(id)
+    public CuentaDigitalDto getById() {
+        Long usuarioId = userUtilsService.getCurrent().getId();
+        return cuentaDigitalRepository.findByUsuarioId(usuarioId)
                 .map(cuentaDigitalMapper::toDto)
                 .orElseThrow(() -> new GeneralException("cuenta-not-found", "Cuenta no encontrada"));
     }
@@ -61,23 +63,23 @@ public class CuentaDigitalService {
 
     // New: debit and credit methods used by Inscripcion service
     @Transactional
-    public void debitCuentaByUsuarioId(Long usuarioId, java.math.BigDecimal amount) {
+    public void debitCuentaByUsuarioId(Long usuarioId, BigDecimal amount) {
         CuentaDigitalEntity entity = cuentaDigitalRepository.findByUsuarioId(usuarioId)
                 .orElseThrow(() -> new GeneralException("cuenta-not-found", "Cuenta digital no encontrada"));
         if (entity.getSaldo().compareTo(amount) < 0) {
             throw new GeneralException("saldo-insuficiente", "Saldo insuficiente");
         }
         entity.setSaldo(entity.getSaldo().subtract(amount));
-        entity.setUpdatedAt(java.time.Instant.now());
+        entity.setUpdatedAt(OffsetDateTime.now());
         cuentaDigitalRepository.save(entity);
     }
 
     @Transactional
-    public void creditCuentaByUsuarioId(Long usuarioId, java.math.BigDecimal amount) {
+    public void creditCuentaByUsuarioId(Long usuarioId, BigDecimal amount) {
         CuentaDigitalEntity entity = cuentaDigitalRepository.findByUsuarioId(usuarioId)
                 .orElseThrow(() -> new GeneralException("cuenta-not-found", "Cuenta digital no encontrada"));
         entity.setSaldo(entity.getSaldo().add(amount));
-        entity.setUpdatedAt(java.time.Instant.now());
+        entity.setUpdatedAt(OffsetDateTime.now());
         cuentaDigitalRepository.save(entity);
     }
 }

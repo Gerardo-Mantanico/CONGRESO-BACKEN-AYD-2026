@@ -36,7 +36,7 @@ public class InstitucionServiceTest {
 
     @BeforeEach
     void setUp() {
-        dto = new CreateDtoInstitucion("Nombre", "Desc corta", "Direccion");
+        dto = new CreateDtoInstitucion("Nombre", "Desc corta", "Direccion", List.of());
         entity = new InstitucionEntity();
         entity.setId(5L);
         entity.setNombre("Nombre");
@@ -47,7 +47,7 @@ public class InstitucionServiceTest {
     void create_happyPath() {
         when(institucionMapper.dtoToEntity(dto)).thenReturn(entity);
         when(institucionRepository.save(entity)).thenReturn(entity);
-        InstitucionResponseDto out = new InstitucionResponseDto(entity.getId(), entity.getNombre(), "Desc corta", entity.getDireccion(), true, java.time.OffsetDateTime.now(), java.time.OffsetDateTime.now());
+        InstitucionResponseDto out = new InstitucionResponseDto(entity.getId(), entity.getNombre(), "Desc corta", entity.getDireccion(), List.of(), true, java.time.OffsetDateTime.now(), java.time.OffsetDateTime.now());
         when(institucionMapper.entityToDto(entity)).thenReturn(out);
 
         InstitucionResponseDto res = institucionService.create(dto);
@@ -71,7 +71,7 @@ public class InstitucionServiceTest {
     @Test
     void list_returnsMapped() {
         when(institucionRepository.findAll()).thenReturn(List.of(entity));
-        InstitucionResponseDto out = new InstitucionResponseDto(entity.getId(), entity.getNombre(), "Desc corta", entity.getDireccion(), true, java.time.OffsetDateTime.now(), java.time.OffsetDateTime.now());
+        InstitucionResponseDto out = new InstitucionResponseDto(entity.getId(), entity.getNombre(), "Desc corta", entity.getDireccion(), List.of(), true, java.time.OffsetDateTime.now(), java.time.OffsetDateTime.now());
         when(institucionMapper.entityToDto(entity)).thenReturn(out);
 
         var res = institucionService.listInstitucion();

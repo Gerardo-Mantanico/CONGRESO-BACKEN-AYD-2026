@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/salones")
+@RequestMapping("/salones")
 @AllArgsConstructor
 public class SalonController {
     private final SalonService salonService;
@@ -25,6 +25,12 @@ public class SalonController {
     @GetMapping("/congreso/{congresoId}")
     public ResponseEntity<List<SalonDto>> listByCongreso(@PathVariable Long congresoId) {
         List<SalonDto> list = salonService.listByCongreso(congresoId);
+        return ResponseEntity.ok(list);
+    }
+
+    @GetMapping()
+    public ResponseEntity<List<SalonDto>> listSalones(){
+        List<SalonDto> list = salonService.listSalones();
         return ResponseEntity.ok(list);
     }
 }

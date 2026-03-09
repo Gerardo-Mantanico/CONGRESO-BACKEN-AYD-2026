@@ -1,12 +1,12 @@
 package com.congreso.web.controller;
 
 import com.congreso.domain.dto.institucion.CreateDtoInstitucion;
+import com.congreso.domain.dto.institucion.FotoDto;
 import com.congreso.domain.dto.institucion.InstitucionResponseDto;
 import com.congreso.domain.service.InstitucionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -47,5 +47,19 @@ public class InstitucionController {
     public ResponseEntity<Void> deleteInstitucion(@PathVariable Long id) {
         this.institucionService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/fotos")
+    @Operation(summary = "Agrega una foto (URL) a la institución")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<InstitucionResponseDto> addFoto(@PathVariable Long id, @RequestBody @Valid FotoDto foto) {
+        return ResponseEntity.ok(this.institucionService.addFoto(id, foto.url()));
+    }
+
+    @DeleteMapping("/{id}/fotos")
+    @Operation(summary = "Remueve una foto (URL) de la institución")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<InstitucionResponseDto> removeFoto(@PathVariable Long id, @RequestParam String url) {
+        return ResponseEntity.ok(this.institucionService.removeFoto(id, url));
     }
 }

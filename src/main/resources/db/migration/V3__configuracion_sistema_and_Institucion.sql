@@ -11,6 +11,7 @@ CREATE TABLE institucion (
                              nombre VARCHAR(255) NOT NULL UNIQUE,
                              descripcion TEXT,
                              direccion VARCHAR(255),
+                             fotos_url JSONB,
                              activo BOOLEAN DEFAULT TRUE,
                              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                              updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

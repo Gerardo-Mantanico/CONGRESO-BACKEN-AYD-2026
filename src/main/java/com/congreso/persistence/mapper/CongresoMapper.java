@@ -12,6 +12,7 @@ public interface CongresoMapper {
     @Mapping(target = "activo", constant = "true")
     @Mapping(target = "createdAt", expression = "java(java.time.OffsetDateTime.now())")
     @Mapping(target = "updatedAt", expression = "java(java.time.OffsetDateTime.now())")
+    @Mapping(target = "institucionId", ignore = true)
     CongresoEntity dtoToEntity(CreateDtoCongreso dto);
 
     CongresoResponseDto entityToDto(CongresoEntity entity);
@@ -20,6 +21,7 @@ public interface CongresoMapper {
     @Mapping(target = "activo", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", expression = "java(java.time.OffsetDateTime.now())")
+    @Mapping(target = "institucionId", ignore = true)
     void updateEntityFromDto(CreateDtoCongreso dto, @MappingTarget CongresoEntity entity);
 }
 

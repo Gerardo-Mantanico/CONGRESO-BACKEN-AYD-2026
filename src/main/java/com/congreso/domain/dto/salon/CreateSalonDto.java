@@ -6,6 +6,7 @@ public class CreateSalonDto {
     private Integer capacidad;
     private String recursos;
     private Long congresoId;
+    private String estado;
 
     public CreateSalonDto() {}
 
@@ -19,5 +20,6 @@ public class CreateSalonDto {
     public void setRecursos(String recursos) { this.recursos = recursos; }
     public Long getCongresoId() { return congresoId; }
     public void setCongresoId(Long congresoId) { this.congresoId = congresoId; }
+    public String getEstado() { return estado; }
+    public void setEstado(String estado) { this.estado = estado; }
 }
-

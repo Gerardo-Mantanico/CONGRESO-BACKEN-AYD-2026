@@ -4,8 +4,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 public record CuentaDigitalDto(
-        Long id,
-        Long usuarioId,
+        Long numeroCuenta,
         BigDecimal saldo,
         String moneda,
         Boolean activa,

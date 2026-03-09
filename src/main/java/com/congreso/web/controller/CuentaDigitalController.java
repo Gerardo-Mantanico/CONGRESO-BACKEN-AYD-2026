@@ -21,27 +21,10 @@ import org.springframework.web.bind.annotation.*;
 public class CuentaDigitalController {
     private final CuentaDigitalService cuentaDigitalService;
 
-    @PostMapping
-    public ResponseEntity<CuentaDigitalDto> create(@RequestBody @Valid CuentaDigitalCreationDto dto) {
-        return ResponseEntity.ok(cuentaDigitalService.create(dto));
-    }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<CuentaDigitalDto> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(cuentaDigitalService.getById(id));
-    }
-
-    @GetMapping
-    public PageResponse<CuentaDigitalDto> list(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "true") boolean ascending
-    ) {
-        Sort sort = ascending ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-        Pageable pageable = PageRequest.of(page, size, sort);
-        Page<CuentaDigitalDto> pageResult = cuentaDigitalService.getAll(pageable);
-        return PageResponse.fromPage(pageResult);
+    @GetMapping()
+    public ResponseEntity<CuentaDigitalDto> getById() {
+        return ResponseEntity.ok(cuentaDigitalService.getById());
     }
 
     @PutMapping("/{id}")

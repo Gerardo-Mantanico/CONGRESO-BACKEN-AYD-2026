@@ -1,12 +1,22 @@
 package com.congreso.domain.service;
 
 import com.congreso.domain.dto.actividad.CreateActividadDto;
+import com.congreso.domain.dto.actividad.ActividadDto;
+import com.congreso.domain.dto.congreso.CongresoResponseDto;
+import com.congreso.domain.dto.convocatoria.ConvocatoriaDto;
+import com.congreso.domain.dto.user.UserDto;
+import com.congreso.domain.dto.institucion.InstitucionResponseDto;
 import com.congreso.domain.exception.DomainException;
 import com.congreso.domain.repository.ActividadRepository;
-import com.congreso.domain.repository.SalonRepository;
 import com.congreso.domain.repository.CongresoRepository;
-import com.congreso.persistence.entity.SalonEntity;
+import com.congreso.domain.repository.ConvocatoriaRepository;
+import com.congreso.domain.repository.UserRepository;
+import com.congreso.domain.enums.Estados;
+import com.congreso.persistence.entity.ActividadEntity;
 import com.congreso.persistence.entity.CongresoEntity;
+import com.congreso.persistence.entity.ConvocatoriaEntity;
+import com.congreso.persistence.entity.UserEntity;
+import com.congreso.persistence.mapper.ActividadMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,60 +25,129 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class ActividadServiceTest {
 
     @Mock
-    private ActividadRepository actividadRepository;
+    ActividadRepository actividadRepository;
 
     @Mock
-    private SalonRepository salonRepository;
+    CongresoRepository congresoRepository;
 
     @Mock
-    private CongresoRepository congresoRepository;
+    ConvocatoriaRepository convocatoriaRepository;
+
+    @Mock
+    UserRepository userRepository;
+
+    @Mock
+    ActividadMapper actividadMapper;
+
+    @Mock
+    UserUtilsService userUtilsService;
 
     @InjectMocks
-    private ActividadService actividadService;
+    ActividadService actividadService;
 
-    private SalonEntity salon;
     private CongresoEntity congreso;
+    private ConvocatoriaEntity convocatoria;
+    private UserEntity user;
 
     @BeforeEach
     void setUp() {
-        salon = new SalonEntity();
-        salon.setId(1L);
-        salon.setCapacidad(50);
-        salon.setCongresoId(100L);
-
         congreso = new CongresoEntity();
-        congreso.setId(100L);
-        congreso.setFechaInicio(OffsetDateTime.of(2026,3,1,8,0,0,0, ZoneOffset.UTC));
-        congreso.setFechaFin(OffsetDateTime.of(2026,3,3,18,0,0,0, ZoneOffset.UTC));
+        congreso.setId(1L);
+        congreso.setFechaInicio(OffsetDateTime.now().plusDays(1));
+        congreso.setFechaFin(OffsetDateTime.now().plusDays(3));
+
+        convocatoria = new ConvocatoriaEntity();
+        convocatoria.setId(1L);
+        convocatoria.setCongresoId(congreso);
+
+        user = new UserEntity();
+        user.setId(1L);
     }
 
     @Test
-    void create_shouldFail_whenOverlap() {
-        CreateActividadDto dto = new CreateActividadDto();
-        dto.setNombre("Charla nueva");
-        dto.setTipo("PONENCIA");
-        dto.setHoraInicio(OffsetDateTime.of(2026,3,1,10,0,0,0, ZoneOffset.UTC));
-        dto.setHoraFin(OffsetDateTime.of(2026,3,1,11,0,0,0, ZoneOffset.UTC));
-        dto.setSalonId(1L);
-        dto.setCongresoId(100L);
+    void create_activity_outside_congress_range_throws() {
+        CreateActividadDto dto = new CreateActividadDto(
+                "Actividad fuera",
+                "desc",
+                "PONENCIA",
+                OffsetDateTime.now().minusDays(1), // antes del congreso
+                OffsetDateTime.now().minusDays(1).plusHours(2),
+                null,
+                congreso.getId(),
+                convocatoria.getId(),
+                null
+        );
 
-        when(salonRepository.findById(1L)).thenReturn(Optional.of(salon));
-        when(congresoRepository.findById(100L)).thenReturn(Optional.of(congreso));
-        // Simular que existe actividad de 9:30 - 10:30
-        when(actividadRepository.existsOverlap(eq(1L), any(), any())).thenReturn(true);
+        when(congresoRepository.findById(congreso.getId())).thenReturn(Optional.of(congreso));
+        when(convocatoriaRepository.findById(convocatoria.getId())).thenReturn(Optional.of(convocatoria));
 
         DomainException ex = assertThrows(DomainException.class, () -> actividadService.create(dto));
-        assertEquals(409, ex.getStatus());
-        verify(actividadRepository, never()).save(any());
+        assertEquals(400, ex.getStatus());
+    }
+
+    @Test
+    void create_taller_with_zero_capacity_throws() {
+        CreateActividadDto dto = new CreateActividadDto(
+                "Taller",
+                "desc",
+                "TALLER",
+                congreso.getFechaInicio().plusHours(1),
+                congreso.getFechaInicio().plusHours(2),
+                0,
+                congreso.getId(),
+                convocatoria.getId(),
+                null
+        );
+
+        when(congresoRepository.findById(congreso.getId())).thenReturn(Optional.of(congreso));
+        when(convocatoriaRepository.findById(convocatoria.getId())).thenReturn(Optional.of(convocatoria));
+
+        DomainException ex = assertThrows(DomainException.class, () -> actividadService.create(dto));
+        assertEquals(400, ex.getStatus());
+    }
+
+    @Test
+    void create_valid_actividad_returnsDto() {
+        CreateActividadDto dto = new CreateActividadDto(
+                "Valida",
+                "desc",
+                "PONENCIA",
+                congreso.getFechaInicio().plusHours(1),
+                congreso.getFechaInicio().plusHours(2),
+                null,
+                congreso.getId(),
+                convocatoria.getId(),
+                null
+        );
+
+        ActividadEntity entity = new ActividadEntity();
+        entity.setId(10L);
+
+        // construir los DTOs anidados requeridos por ActividadDto
+        InstitucionResponseDto institucionDto = new InstitucionResponseDto(1L, "Inst", "desc", "dir", null, true, null, null);
+        CongresoResponseDto congresoDto = new CongresoResponseDto(congreso.getId(), "T", "D", congreso.getFechaInicio(), congreso.getFechaFin(), "U", null, null, null, true, institucionDto, null, null);
+        ConvocatoriaDto convocDto = new ConvocatoriaDto(convocatoria.getId(), "N", "D", congreso.getFechaInicio(), congreso.getFechaInicio().plusDays(1), congresoDto, "ACT", null, null);
+        UserDto userDto = new UserDto(user.getId(), "f", "l", "e@e", "p", "dpi", null, null, true, null, false, null);
+
+        when(congresoRepository.findById(congreso.getId())).thenReturn(Optional.of(congreso));
+        when(convocatoriaRepository.findById(convocatoria.getId())).thenReturn(Optional.of(convocatoria));
+        when(userUtilsService.getCurrent()).thenReturn(user);
+        when(actividadMapper.toEntity(any())).thenReturn(entity);
+        when(actividadRepository.save(any())).thenReturn(entity);
+        when(actividadMapper.toDto(entity)).thenReturn(new ActividadDto(entity.getId(), dto.nombre(), dto.descripcion(), dto.tipo(), dto.horaInicio(), dto.horaFin(), dto.capacidadMaxima(), congresoDto, convocDto, userDto, dto.archivoUrl(), Estados.ACTIVO, entity.getCreatedAt(), entity.getUpdatedAt()));
+
+        var result = actividadService.create(dto);
+        assertNotNull(result);
+        assertEquals(10L, result.id());
     }
 }

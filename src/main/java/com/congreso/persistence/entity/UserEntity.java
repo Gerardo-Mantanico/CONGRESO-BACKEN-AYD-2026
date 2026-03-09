@@ -83,9 +83,11 @@ public class UserEntity implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
+        // Asegura que las autoridades tengan el prefijo ROLE_ esperado por hasRole('X')
         return userRoles.stream()
                 .map(UserRoleEntity::getRole)
                 .map(RoleEntity::getName)
+                .map(name -> name != null && name.startsWith("ROLE_") ? name : "ROLE_" + name)
                 .map(SimpleGrantedAuthority::new)
                 .toList();
     }

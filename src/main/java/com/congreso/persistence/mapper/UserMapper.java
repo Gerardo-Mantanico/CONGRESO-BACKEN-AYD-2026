@@ -16,6 +16,7 @@ public interface UserMapper {
     UserDto toDto(UserEntity userEntity);
     List<UserDto> toDto(Iterable<UserEntity> movieEntityList);
 
+    @Mapping(target = "use2fa", defaultValue = "false")
     UserEntity toEntity(UserDto userDto);
 
     @Mapping(target = "createdAt", ignore = true)

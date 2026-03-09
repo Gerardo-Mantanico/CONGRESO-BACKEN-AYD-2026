@@ -50,7 +50,7 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(
                         request -> request.requestMatchers("/auth/**", "/swagger-ui/**", "/v3/api-docs/**", "/hello/**")
                                 .permitAll()
-                                .requestMatchers(HttpMethod.GET, "/clinica","/servicios","/especialidad","/areas").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/instituciones","/congresos","/especialidad","/areas").permitAll()
                                 .anyRequest()
                                 .authenticated());
         return http.build();

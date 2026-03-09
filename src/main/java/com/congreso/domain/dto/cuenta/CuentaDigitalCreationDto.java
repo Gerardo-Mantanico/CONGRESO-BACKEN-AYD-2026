@@ -6,8 +6,6 @@ import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 
 public class CuentaDigitalCreationDto {
-    @NotNull
-    private Long usuarioId;
 
     private BigDecimal saldo;
 
@@ -15,14 +13,6 @@ public class CuentaDigitalCreationDto {
     private String moneda;
 
     public CuentaDigitalCreationDto() {
-    }
-
-    public Long getUsuarioId() {
-        return usuarioId;
-    }
-
-    public void setUsuarioId(Long usuarioId) {
-        this.usuarioId = usuarioId;
     }
 
     public BigDecimal getSaldo() {

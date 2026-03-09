@@ -28,5 +28,8 @@ public class SalonEntity {
 
     @Column(name = "updated_at")
     private Instant updatedAt = Instant.now();
+
+    @Column(name = "estado_id")
+    private Long estadoId;
 }
 

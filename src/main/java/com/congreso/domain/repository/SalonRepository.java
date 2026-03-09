@@ -1,6 +1,7 @@
 package com.congreso.domain.repository;
 
 import com.congreso.persistence.entity.SalonEntity;
+import io.micrometer.common.KeyValues;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -10,4 +11,5 @@ public interface SalonRepository extends JpaRepository<SalonEntity, Long> {
     Optional<SalonEntity> findByIdAndCongresoId(Long id, Long congresoId);
     boolean existsByNombreAndCongresoId(String nombre, Long congresoId);
     List<SalonEntity> findByCongresoIdAndActivoTrue(Long congresoId);
+    List<SalonEntity> findByActivoTrue();
 }
